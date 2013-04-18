@@ -38,22 +38,29 @@ var NewNote = Backbone.Model.extend({
 				data: self.attributes,
 				success: function(data){
 					$('.notes').append("<li class='note'><span class='note-body'>" + data.body + "</span><span class='note-date'>" + data.created_at + "</span></li>")
-				},
-				error: function(data){
-					debugger
+					self.doneCreating();
 				}
 			});
 		})
-	}
-	// create: function(){
+	},
 
-	// }
+	doneCreating: function(){
+		this.clear();
+		this.trigger('created');
+	}
 });
 
 var CreateNoteView = Backbone.View.extend({
 	events: {
 		'blur .new-note-form': 'fieldBlur',
 		'submit .new-note-form': 'create'
+	},
+
+	initialize: function(){
+		var self=this;
+		this.model.on('created', function(){
+			self.reset();
+		})
 	},
 
 	fieldBlur: function(e){
@@ -63,5 +70,9 @@ var CreateNoteView = Backbone.View.extend({
 	create: function(e){
 		e.preventDefault();
 		this.model.trigger('create')
+	},
+
+	reset: function(){
+		this.$el.find("[name='body']").val('');
 	}
 });
