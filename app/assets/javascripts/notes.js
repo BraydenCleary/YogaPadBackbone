@@ -12,15 +12,23 @@ var init = function(){
 		model: newNote
 	});
 
+	var notesCollection = new Backbone.Collection({});
+
+	var notesview = new NotesView({
+		el: $('.notes-display'),
+		collection: notesCollection
+	});
+
 
 	// Rendering all notes
 	$.ajax({
 		url: '/notes',
 		type: 'get',
 		success: function(data){
-			_.each(data, function(note){
-				$('.notes').append("<li class='note'><span class='note-body'>" + note.body + "</span><span class='note-date'>" + note.created_at + "</span></li>")
-			});
+			// _.each(data, function(note){
+			// 	$('.notes').append("<li class='note'><span class='note-body'>" + note.body + "</span><span class='note-date'>" + note.created_at + "</span></li>")
+			// });
+			notesCollection.reset(data)
 		}
 	});
 }
@@ -76,3 +84,22 @@ var CreateNoteView = Backbone.View.extend({
 		this.$el.find("[name='body']").val('');
 	}
 });
+
+var NotesView = Backbone.View.extend({
+	notesListTemplate: _.template("<ul class='notes'><%= notesListHTML %></ul>"),
+
+	noteTemplate: _.template("<li class='note'><span class='note-body'><%- body %></span><span class='note-date'><%- created_at %></span></li>"),
+
+	initialize: function(){
+		this.collection.on('reset', this.render.bind(this))
+	},
+
+	render: function(){
+		var self = this;
+		self.$el.html('');
+		var notesListHTML = _.map(this.collection.models, function(model){
+			return self.noteTemplate(model.attributes);
+		}).join('');
+		self.$el.append(self.notesListTemplate({notesListHTML: notesListHTML}))
+	}
+})
